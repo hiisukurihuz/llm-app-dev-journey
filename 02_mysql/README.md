@@ -54,6 +54,6 @@ python 02_mysql\04_python_mysql\demo01_crud.py
 
 ## 我的改造 / 踩坑
 
-- 重敲时把 `P01_MySQL_PY.py` 从"字符串拼 SQL + 裸连接"改成参数化 + `with` 管理连接。
-- `03_transaction/` 原有两个文件夹各一个会话，迁移后合并到同一目录用文件名区分。
+- 重写时把 `P01_MySQL_PY.py` 从"字符串拼 SQL + 裸连接"改成参数化 + `with` 管理连接。
+- `03_transaction/` 两个会话合并在同一目录，用文件名区分。
 - （继续补：慢查询、EXPLAIN 读法、练习里踩的坑）

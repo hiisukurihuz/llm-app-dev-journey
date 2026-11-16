@@ -63,5 +63,5 @@ python 01_python_core\08_file_io\gen_test_file.py
 
 ## 我的改造 / 踩坑
 
-- 重敲时把 `homework_*.py` 统一改名 `exercise_*.py`，日期目录改成主题目录。
+- 重写时把 `homework_*.py` 统一改名 `exercise_*.py`，日期目录改成主题目录。
 - （写代码时往下补：bug 修复过程、参数选择理由）

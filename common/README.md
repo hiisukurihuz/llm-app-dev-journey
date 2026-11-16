@@ -48,7 +48,7 @@ from common.llm import chat_model
 llm = chat_model()
 print(llm.invoke("用一句话解释什么叫 RAG").content)
 
-# 3) 原生 OpenAI SDK 直连 DeepSeek（第 28-32 天的写法）
+# 3) 原生 OpenAI SDK 直连 DeepSeek（需要原始返回结构时用）
 from common.llm import deepseek_client
 client = deepseek_client()
 resp = client.chat.completions.create(

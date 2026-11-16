@@ -61,5 +61,5 @@ python 03_network_concurrency\05_http_server\demo01_HTTP_server.py
 ## 我的改造 / 踩坑
 
 - 两份进程/线程代码合并，删掉重复实现。
-- 重敲时给并发 server 加：`daemon=True`、最大并发数、`Ctrl+C` 优雅退出。
+- 重写时给并发 server 加：`daemon=True`、最大并发数、`Ctrl+C` 优雅退出。
 - （继续补：粘包、端口占用、僵尸进程等实际报错）

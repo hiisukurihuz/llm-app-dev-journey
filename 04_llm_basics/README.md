@@ -52,5 +52,5 @@ python 04_llm_basics\01_hello_llm\demo01_quick_start.py
 
 - `demo05_multi_function_calling.py` 该文件是补全练习：先留空，自己实现多工具调度。
 - 天气工具加了 `days` 参数限幅、超时和城市查不到的兜底。
-- SQL 工具重敲时加白名单（只允许 SELECT）。
+- SQL 工具重写时加白名单（只允许 SELECT）。
 - （继续补）

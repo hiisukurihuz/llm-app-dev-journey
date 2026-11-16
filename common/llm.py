@@ -33,7 +33,11 @@ def chat_model(model: str | None = None, *, base_url: str | None = None, api_key
 
 
 def deepseek_client():
-    """原生 OpenAI SDK 客户端，直连 DeepSeek 官方接口（第 28-32 天那种写法）。"""
+    """原生 OpenAI SDK 客户端，直连 DeepSeek 官方接口。
+
+    适合需要直接拿到 SDK 原始返回结构的场景（思考链、usage、finish_reason）；
+    只做普通问答时用 chat_model() 更方便。
+    """
     try:
         from openai import OpenAI
     except ImportError as exc:  # pragma: no cover
