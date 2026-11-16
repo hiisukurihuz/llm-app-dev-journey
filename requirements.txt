@@ -1,0 +1,39 @@
+# ============================================================
+#  全仓库依赖（按模块分段，用到哪块再装哪块）
+#  安装：pip install -r requirements.txt
+# ============================================================
+
+# ---- 通用 ----
+python-dotenv
+requests
+numpy
+
+# ---- 04_llm_basics：大模型 API 与工具调用 ----
+openai
+volcengine-python-sdk
+
+# ---- 05_rag：解析 / 切分 / 向量库 / 重排 ----
+pdfminer.six
+nltk
+chromadb
+sentence-transformers
+
+# ---- 06_prompt_engineering ----
+# 无额外依赖（复用 openai / requests）
+
+# ---- 07_langchain：第 33 天起 ----
+langchain
+langchain-core
+langchain-community
+langchain-openai
+rank_bm25
+faiss-cpu
+
+# ---- 08_multimodal / 09_agent / 10_langgraph：学到再取消注释 ----
+# langgraph
+# langchain-experimental
+
+# ---- 12_fastapi_service ----
+# fastapi
+# uvicorn[standard]
+# streamlit
