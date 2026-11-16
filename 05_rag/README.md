@@ -28,8 +28,8 @@
 | `02_pdf_parse_chunk/` | PDF 解析、段落合并、句子级分块 |
 | `03_vectordb/` | 相似度计算、Chroma 增删改查 |
 | `04_rerank/` | 完整 RAG + CrossEncoder 重排 |
-| `data/` | 示例文档 `handbook.pdf` |
-| `tests/` | 至少 3 个 pytest |
+| `data/` | 示例文档（原始 PDF 不入库，见 `data/README.md`） |
+| `tests/` | 单测与评测集，3 个必测点见 `tests/README.md` |
 
 ## 怎么跑
 
