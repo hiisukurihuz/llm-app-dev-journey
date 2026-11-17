@@ -35,7 +35,7 @@
 ```
 README.md            本文件
 common/              公共代码：密钥加载、模型客户端
-docs/                学习路线、复盘笔记、图片
+docs/                学习路线、复盘笔记
 01_python_core/      ...
 12_fastapi_service/
 projects/
