@@ -1,9 +1,16 @@
-"""全仓库统一的配置入口。
+"""配置入口
 
-设计原则（和常见的"把 key 写在代码里"相反）：
-1. 密钥只放在仓库根目录的 `.env`，`.env` 被 `.gitignore` 排除，永远不进 Git；
-2. 换机器 / 换账号只改 `.env`，不改代码；
-3. 缺 key 时立刻抛错并告诉你怎么办，而不是跑到一半返回空字符串。
+用于调用各个大模型APIKEY
+
+设计原则：
+1.将APIKEY存入.env环境，上传GitHub时只上传.env.example，防止密钥泄露。 （踩坑点）
+2.APIKEY缺失或调用异常时，抛出具体问题。    （踩坑点）
+3.更换密钥只改.env
+
+该模块心得：
+1.路径用 Path(__file__) 锚定自身位置
+2.fail-fast思路：检查放在 import 时机，启动即校验
+    例：from common.llm import deepseek_client时与本模块联动，若密钥没配好，直接报错
 """
 
 from __future__ import annotations
@@ -13,15 +20,17 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# 本文件在 <仓库根>/common/config.py，所以 parents[1] 就是仓库根
+# 检验路径内是否配置.env
+# 心得：Path(__file__)定到自身文件所在路径，.resolve()转为绝对路径，再跳到指定目录
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ENV_FILE = REPO_ROOT / ".env"
 
+#将.env写进环境变量表
 load_dotenv(ENV_FILE)
 
 
 def require(name: str) -> str:
-    """读取一个必需的环境变量；缺失时给出可操作的报错。"""
+    """从系统环境变量中查name，若不存在则给空串，将查不到和空串同时处理"""
     value = os.getenv(name, "").strip()
     if not value:
         raise RuntimeError(
@@ -32,12 +41,15 @@ def require(name: str) -> str:
 
 
 def optional(name: str, default: str) -> str:
-    """读取一个可选的环境变量，缺失时用默认值。"""
+    """首选读取到的环境变量，缺失时用默认值，此处为大模型默认URL。"""
     value = os.getenv(name, "").strip()
     return value or default
 
 
 # ---------------------------------------------------------------- 密钥
+# 心得：fail-fast思路：检查放在 import 时机，而不是用的时候。
+#     例：from common.llm import deepseek_client时，若密钥没配好，直接报错
+
 ds_key = require("DEEPSEEK_API_KEY")      # DeepSeek 开放平台
 volc_key = require("VOLC_API_KEY")        # 火山方舟（Ark）
 
@@ -50,7 +62,7 @@ ARK_EMBEDDING_MODEL = optional("ARK_EMBEDDING_MODEL", "doubao-embedding-vision-2
 
 
 if __name__ == "__main__":
-    # 自检：只打印"有没有配好"，不打印密钥本身
+    # 自检，且在打印时隐藏key
     def mask(s: str) -> str:
         return s[:4] + "*" * 8 + s[-4:] if len(s) > 12 else "*" * len(s)
 

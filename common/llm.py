@@ -1,7 +1,6 @@
-"""构造大模型客户端的便捷函数。
+"""大模型客户端的便捷函数。
 
-把"用哪个 base_url、用哪个 key、用哪个模型名"集中在这里，
-每个 demo 只写业务逻辑，不要重复复制那 5 行初始化代码。
+实际项目内通过from common.llm import chat_model调用大模型。
 
 依赖是延迟导入的：用不到哪个库，就不会因为没装它而报错。
 """
@@ -36,11 +35,11 @@ def deepseek_client():
     """原生 OpenAI SDK 客户端，直连 DeepSeek 官方接口。
 
     适合需要直接拿到 SDK 原始返回结构的场景（思考链、usage、finish_reason）；
-    只做普通问答时用 chat_model() 更方便。
+    只做普通问答时用 chat_model()。
     """
     try:
         from openai import OpenAI
-    except ImportError as exc:  # pragma: no cover
+    except ImportError as exc: # pragma: no cover
         raise ImportError("请先安装: pip install openai") from exc
 
     return OpenAI(api_key=config.ds_key, base_url=config.DEEPSEEK_BASE_URL)
