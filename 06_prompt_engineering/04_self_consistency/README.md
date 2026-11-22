@@ -44,11 +44,43 @@
 - **输出校验**：禁止用 `eval`（模型输出是不可信输入）、禁止 `'true' in text` 字符串判断（「不准确」会误判）。
 - **可移植性**：脚本在二级子目录，从仓库根运行必须自己锚定 `sys.path`，否则报 `ModuleNotFoundError`。正解是 `pyproject.toml` + `pip install -e .`。
 
+
+### 展开：
+
+**原理**：难题存在多条通向同一正确答案的推理路径，错误答案分散在各自的错路径上；`temperature > 0` 采样 N 条 + 多数投票 ≈ 把「走了哪条路径」平均掉（边缘化），所以比单次贪心更稳。
+
+**成本怎么量**：指标不是背数字，而是从 `resp.usage` 与计时里实测。
+
+| 指标 | 来源 | 单次 | N=5 串行 
+|---|---|---|---|---|
+| tokens | `usage.completion_tokens` | 98 74 | 490 438 ≈ 5× 
+| 延迟 | `time.perf_counter()` | 1.4s |  [0.95, 1.04, 0.67, 1.11, 0.84] 不可预测
+
+
+> 输入侧因 prompt 相同会命中缓存（cache hit 比 cache miss 便宜约 97%），增量主要集中在输出 token，所以整体成本不是 5 倍。表中「待测」项跑通后补齐，不写估算值。
+
+**什么时候不值得**：聊天、RAG 问答、创意生成、低风险批量分类；o1 / R1 类推理模型内部已做多路径，通用场景不再手写；只在高风险 + 离散答案 + 单次错误代价大的节点选择性使用（金融计算、法务合规、根因分析、风险评估、内容审核）。
+
+## 我的改造 / 踩坑 / 新学知识
+
+- `sys.path` 锚定程序自身位置，保证 clone 后不会因为工作目录不同而无法调用 `common.llm`。
+- 大模型返回的是字符串，进入业务逻辑前要转成结构化数据，即「不可信文本 → 可信结构」：
+
+```python
+def parse_verdict(text: str):
+    # .search 找第一个 {...}；r"" 关闭 Python 层转义；.*? 非贪婪；re.S 让 . 匹配换行
+    m = re.search(r"\{.*?\}", text, re.S)
+    # .group() 按 span 把匹配片段从原文切出；json.loads 解析成 dict；.get 缺字段返回 None
+    return json.loads(m.group()).get("accurate") if m else None
+```
+
+- **踩坑 · 正则被 LaTeX 花括号劫持（2026-11-20）**：题目要求「先写推理再给 JSON」后，模型推理里自然出现 `\frac{2}{5}`、`\text{全蓝}` 等 LaTeX，花括号被 `\{.*?\}` 当成第一个 JSON 块匹配，`json.loads("{2}")` 抛 `JSONDecodeError`。**约束 prompt 让模型别写花括号是无效的**（算概率必然写公式），正确做法是改解析器：正则收紧到只匹配含 `"accurate"` 键的对象，或用 `findall` 取最后一个匹配，并对解析失败加兜底。
+- **踩坑 · 废票**：`Counter` 不校验内容，`None` 也是合法 key。解析失败若返回 `None` 而不加过滤，会凑出假的 1.0 一致率。投票前必须过滤废票、判断有效票是否足够，并用有效票数作分母。
+
+
 ## 本地实验
 
 ```powershell
 cd D:\PythonProject\llm-app-dev-journey
 python 06_prompt_engineering\04_self_consistency\self_consistency.py
 ```
-
-题目：3 红 2 蓝不放回抽 2 个，「至少 1 红」概率是否 > 0.8（正确答案 `true`，`1 − 0.1 = 0.9`）。选它因为需要两步计算、直觉容易错、且答案可自己验算——**只有答案客观确定，才能算「准确率」这个指标**；换成主观题，一致率低只能说明问题本身有争议。
