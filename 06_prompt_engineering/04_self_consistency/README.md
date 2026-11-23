@@ -1,12 +1,10 @@
-# 自洽性（Self-Consistency）｜面试问答卡
+# 自洽性（Self-Consistency）
 
 > 代码：[`self_consistency.py`](./self_consistency.py) ｜ 模块说明：[`../README.md`](../README.md)
 
-这份笔记按「被问到时怎么答」组织，不罗列知识点。定位：**面试高频、生产低频**——值钱的是「LLM 输出可靠性 / 置信度 / 评测」这条判断线，不是那十几行投票代码。
-
 ## Q1 它解决什么问题？为什么能提升准确率？
 
-难题往往有多条不同推理路径通向同一个正确答案，而错误答案分散在各自的错路径上。贪心解码（`temperature=0`）只走一条，走错就错了。做法是 CoT 提示 + `temperature 0.7~1.0` 采样 N 条**不同的推理链**，只抽每条的最终答案做多数投票，相当于把「走了哪条路径」这个隐变量平均掉（边缘化）。
+难题往往有多条不同推理路径通向同一个正确答案，而错误答案分散在各自的错路径上。贪心解码（`temperature=0`）只走一条，走错就错了。做法是 CoT 提示 + `temperature 0.7~1.0` 采样 N 条**不同的推理链**，只抽每条的最终答案做多数投票。
 
 > 出处：Wang et al., *Self-Consistency Improves Chain of Thought Reasoning in Language Models*（ICLR 2023）。公开基准上比单次 CoT 高 5~15%，但那是 GSM8K / MATH 的结果，**不能当自己项目的数字**。
 
@@ -51,6 +49,7 @@
 
 **成本怎么量**：指标不是背数字，而是从 `resp.usage` 与计时里实测。
 
+并行测试可以参考langgraph中的Map-Reduce
 | 指标 | 来源 | 单次 | N=5 串行 
 |---|---|---|---|---|
 | tokens | `usage.completion_tokens` | 98 74 | 490 438 ≈ 5× 
