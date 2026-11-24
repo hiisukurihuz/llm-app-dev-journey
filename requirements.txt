@@ -30,9 +30,13 @@ langchain-openai
 rank_bm25
 faiss-cpu
 
-# ---- 08_multimodal / 09_agent / 10_langgraph：
-# langgraph
-# langchain-experimental
+# ---- 08_multimodal / 09_agent / 10_langgraph ----
+# 10_langgraph 综合案例用 1.x API：Runtime / context= / langgraph.runtime 在 0.4.x 里没有
+# 实测：langgraph 1.2.10 + langgraph-checkpoint-sqlite 3.1.1 可跑；0.4.3 缺 langgraph.runtime
+# langchain-core / langchain-openai 见 07 段，1.x 需两者同为 1.x
+langgraph>=1.0
+langgraph-checkpoint-sqlite>=3.0   # 提供 SqliteSaver / SqliteStore
+# langchain-experimental（暂未用到）
 
 # ---- 12_fastapi_service ----
 # fastapi
