@@ -61,6 +61,11 @@ from common.llm import ark_client
 ark = ark_client()
 ```
 
+> **别混用两个客户端**：`chat_model()` 返回 `ChatOpenAI`（LangChain / LangGraph 用，有 `bind_tools()` / `invoke()`）；
+> `deepseek_client()` 返回原生 `openai.OpenAI`（只有 `chat.completions.create()`，没有 `bind_tools` / `invoke`）。
+> 把 `deepseek_client()` 接进 `bind_tools()` 会在启动阶段直接 `AttributeError`；只有需要原始返回结构（usage、思考链）时才用它，
+> 且 `create()` 必须带 `messages`，别把调试调用留在模块顶层。
+
 ## 四、自检
 
 ```powershell

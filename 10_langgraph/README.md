@@ -16,7 +16,8 @@ Agent 一旦有分支、循环、人工确认，用链就写不下去了。LangG
 - [ ] Checkpoint：中断与恢复、失败重跑
 - [ ] Human-in-the-loop：人工审批节点
 - [ ] 多智能体协作：Supervisor / 分工模式
-- [ ] 综合案例：多智能体客服系统
+- [ ] 并行执行：Send / Map-Reduce（上一个知识点）
+- [ ] 综合案例：多智能体客服系统（压轴，见 `06_customer_service_agent/`，前置 01~05 含并行执行）
 
 ## 目录（计划）
 
@@ -25,14 +26,15 @@ Agent 一旦有分支、循环、人工确认，用链就写不下去了。LangG
 | `01_basic_graph/` | 最小图、节点与边 |
 | `02_state_reducer/` | 状态合并、条件边、循环 |
 | `03_human_in_loop/` | 中断、恢复、人工审批 |
-| `04_multi_agent/` | 多智能体客服 |
-| `05_case_ticket_flow/` | 自选案例：售后工单流转（含人工审批中断与恢复） |
+| `04_multi_agent/` | 多智能体协作模式（Supervisor / 分工） |
+| `05_case_diagnosis/` | 自选案例：售后工单流转（含人工审批中断与恢复） |
+| `06_customer_service_agent/` | 综合案例：电商售后多智能体客服（LangGraph 收尾，串起 01~05） |
 
 ## 怎么跑
 
-```powershell
-python 10_langgraph\01_basic_graph\demo01_hello_graph.py
-```
+当前各子目录均为骨架（`06_customer_service_agent/` 已有脚本但接入待修）。脚本跑通后在此补命令与实测数字，未实测一律写「待测」。
+
+依赖见根 `requirements.txt`；`10_langgraph` 需 langgraph 1.x（0.4.x 无 `langgraph.runtime` / `Runtime` / `context=`）。
 
 ## 验收标准（能脱稿讲清）
 
