@@ -10,7 +10,8 @@ numpy
 
 # ---- 04_llm_basics：大模型 API 与工具调用 ----
 openai
-volcengine-python-sdk
+# 只用到 volcenginesdkarkruntime.Ark；元包 volcengine-python-sdk 会连带拉上百个无关云 SDK，clone 后安装极慢
+volcengine-ark-runtime
 
 # ---- 05_rag：解析 / 切分 / 向量库 / 重排 ----
 pdfminer.six

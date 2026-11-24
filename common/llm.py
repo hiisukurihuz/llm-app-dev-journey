@@ -50,6 +50,6 @@ def ark_client():
     try:
         from volcenginesdkarkruntime import Ark
     except ImportError as exc:  # pragma: no cover
-        raise ImportError("请先安装: pip install volcengine-python-sdk") from exc
+        raise ImportError("请先安装: volcengine-ark-runtime") from exc
 
     return Ark(api_key=config.volc_key)
