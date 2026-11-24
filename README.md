@@ -55,8 +55,9 @@ python -m venv .venv
 pip install -r requirements.txt
 Copy-Item .env.example .env           # 填入自己的 DEEPSEEK_API_KEY / VOLC_API_KEY
 
-python common\config.py               # 自检配置
-python 05_rag\04_rerank\demo15_cross_encoder.py
+python common\config.py               # 自检配置（密钥、路径锚定）
+
+# 各模块脚本见对应 README；05_rag/01_naive_rag/native_rag.py 当前为 WIP（依赖已装、检索链路待接）
 ```
 
 脚本里需要引用 `common/` 时，在开头加 5 行「向上找仓库根」的引导，见 [common/README.md](common/README.md)。

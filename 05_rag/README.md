@@ -33,12 +33,7 @@
 
 ## 怎么跑
 
-```powershell
-cd D:\PythonProject\llm-app-dev-journey
-python 05_rag\04_rerank\demo15_cross_encoder.py
-```
-
-首次运行会下载 `cross-encoder/ms-marco-MiniLM-L-6-v2` 权重（约 80MB），已加入 `.gitignore`，不会进仓库。
+> 当前无已跑通的脚本：`01_naive_rag/native_rag.py` 为 WIP（依赖已装、检索链路待接，见该目录），`04_rerank/demo15_cross_encoder.py` 尚未落地。跑通后在此补命令与实测数字，未实测一律写「待测」。
 
 ## 验收标准
 
@@ -52,5 +47,5 @@ python 05_rag\04_rerank\demo15_cross_encoder.py
 ## 我的改造 / 踩坑
 
 - 分块加了长度上限与句子边界对齐，避免切断语义。
-- 检索 TopK 从 3 调到 5 后召回有提升（具体数字在 `05_eval/` 里）。
+- 检索 TopK 从 3 调到 5 后召回有提升——评测集与实测数字待测，暂不填结论值。
 - （继续补：Chroma 的 embedding_function 必须与入库时一致，否则查询结果毫无意义）
