@@ -33,7 +33,13 @@
 
 ## 怎么跑
 
-> 当前无已跑通的脚本：`01_naive_rag/native_rag.py` 为 WIP（依赖已装、检索链路待接，见该目录），`04_rerank/demo15_cross_encoder.py` 尚未落地。跑通后在此补命令与实测数字，未实测一律写「待测」。
+已跑通：`01_naive_rag/native_rag.py`（2026-11-26 实测 `exit 0`）。需 `.env` 配好 `DEEPSEEK_API_KEY` / `VOLC_API_KEY`，依赖见根 `requirements.txt`。
+
+```powershell
+python 05_rag\01_naive_rag\native_rag.py
+```
+
+一个程序里跑两条路径做对照：全量上下文直接生成、RAG 检索（embedding → 余弦相似度 → `TOP_K=3` 截断 → 拼回 Prompt 再生成），输出为对照答案、TopK 相似度列表、RAG 生成答案三段。`04_rerank/demo15_cross_encoder.py` 尚未落地；Recall@K、token 对比等实测数字待测，未实测一律写「待测」。
 
 ## 验收标准
 
@@ -46,6 +52,7 @@
 
 ## 我的改造 / 踩坑
 
+- **避免重复调用、控制 token 成本**：客户端构造与所有 API 调用收进 `main()` 并加 `if __name__ == "__main__"` 守卫——顶层写法下模块每被 `import` 一次就会重发整库 embedding 与生成请求，既重复计费、又让模块无法被测试安全导入；检索结果按 `TOP_K` 截断后才拼进 Prompt，控制送入上下文的 token 量。取舍：全量上下文那一路刻意保留作对照（会多付一次调用），目的是讲清「检索到底改变了什么」，生产里不会两条路径并存。
 - 分块加了长度上限与句子边界对齐，避免切断语义。
 - 检索 TopK 从 3 调到 5 后召回有提升——评测集与实测数字待测，暂不填结论值。
 - （继续补：Chroma 的 embedding_function 必须与入库时一致，否则查询结果毫无意义）
