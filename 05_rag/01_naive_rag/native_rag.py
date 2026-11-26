@@ -1,4 +1,4 @@
-#最小的大模型运行示例
+#全量上下文与RAG检索区别
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -32,6 +32,10 @@ __QUERY__
 请用中文回答用户问题。
 """
 
+user_query = "人工智能技术的作用"
+TOP_K = 3 # 筛选相似度（或相关程度）最高的3个句子
+
+######################### 全量上下文检索 ###############################
 #拼接提示词函数
 def build_prompt(prompt_template,**kwargs):
     """
@@ -55,28 +59,8 @@ def build_prompt(prompt_template,**kwargs):
     return prompt
 
 
-#连接火山方舟模型（embedding模型）
-embedding_client=ark_client()
-# 获取单个文本的嵌入向量
-def get_embedding(text):
-    """获取单个文本的嵌入向量"""
-    resp = embedding_client.multimodal_embeddings.create(
-        model="doubao-embedding-vision-251215",
-        input=[{"type": "text", "text": text}]
-    )
-    # 返回embedding向量
-    return resp.data.embedding
 
-
-#将知识库中的所有句子转换成向量
-kb_emds=[]
-for i,kb_text in enumerate(knowledge_base):
-    emb=get_embedding(kb_text)  #转换向量
-    kb_emds.append(emb)  #添加到列表保存
-
-client=deepseek_client()
-#改造：增加计算tokens和时间成本
-def get_conn(prompt):
+def get_conn(client, prompt):
     resp = client.chat.completions.create(
         model="deepseek-chat",
         messages=[{"role": "user", "content": prompt}],
@@ -85,19 +69,75 @@ def get_conn(prompt):
     return resp.choices[0].message.content
 
 
-user_query = "人工智能技术的作用"
+#关系型数据库检索
+def get_query(client, prompt):
+    return get_conn(client, prompt)
 
-query_embedding = get_embedding(user_query)
 
-prompt=build_prompt(prompt_template,
-                    info=kb_emds,
-                    query=query_embedding)
+######################### RAG检索 ###############################
 
-result=get_conn(prompt)
+# 获取单个文本的嵌入向量
+def get_embedding(embedding_client, text):
+    resp = embedding_client.multimodal_embeddings.create(
+        model="doubao-embedding-vision-251215",
+        input=[{"type": "text", "text": text}]
+    )
+    return resp.data.embedding
+
+
+#计算向量的余弦相似度
+def cosine_sim(a,b):  #计算a,b余弦相似度
+    a,b=np.array(a),np.array(b)  #将a,b转换成数组
+    dot_product = np.dot(a,b)   #a和b两个数组（向量）做点乘（相似度）
+    #将相似度转换到-1~1 范围
+    norm_a = np.linalg.norm(a)   #向量a的模长（向量的长度）
+    norm_b = np.linalg.norm(b)
+    if norm_a == 0 or norm_b == 0:
+        return 0
+    else:
+        return dot_product/(norm_a*norm_b)
+
+
+#RAG检索
+def embed_text(kb_emds,query_embedding,top_k=TOP_K):
+    #依次计算query向量和知识库中每个向量的相似度
+    result = []  # 计算结果
+    for i, emb in enumerate(kb_emds):  # 遍历向量列表
+        similarity = cosine_sim(query_embedding, emb)  # 计算余弦相似度
+        result.append((knowledge_base[i], similarity, i))  # 原句子，相似度，序号  作为元组存入结果列表
+
+    # 对results进行排序
+    result.sort(key=lambda x: x[1], reverse=True)  # x表示列表中的元素，x[1]表示排序依据，根据第二个值（相似度）排序
+    return result[:top_k]
+
+
+def main():
+    client = deepseek_client()
+    embedding_client = ark_client()
+
+    # 对照：全量上下文直接生成
+    full_prompt = build_prompt(prompt_template, info=knowledge_base, query=user_query)
+    print("全量上下文检索结果：", get_query(client, full_prompt), "\n")
+    print("=" * 20)
+
+    # Retrieval：向量化 + TopK
+    query_embedding = get_embedding(embedding_client, user_query)
+    kb_emds = [get_embedding(embedding_client, t) for t in knowledge_base]
+    top_chunks = embed_text(kb_emds, query_embedding)
+    for text, simi, index in top_chunks:
+        print(f"相似度：{simi},原句子：{text}")
+
+    # Augmentation + Generation：把 TopK 原文本拼回 prompt，再调一次模型
+    context = [text for text, _, _ in top_chunks]
+    rag_prompt = build_prompt(prompt_template, info=context, query=user_query)
+    print("\nRAG 生成结果：", get_conn(client, rag_prompt))
 
 
 if __name__=="__main__":
-    print(result)
+
+    main()
+
+
 
 
 
