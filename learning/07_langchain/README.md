@@ -37,7 +37,7 @@
 
 ```powershell
 cd D:\PythonProject\llm-app-dev-journey
-python 07_langchain\01_model_io\demo01_quick_start.py
+python learning\07_langchain\01_model_io\demo01_quick_start.py
 ```
 
 脚本开头加 5 行"向上找仓库根"的引导，再 `from common.llm import chat_model`——

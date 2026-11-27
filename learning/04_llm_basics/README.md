@@ -34,10 +34,10 @@
 
 ```powershell
 cd D:\PythonProject\llm-app-dev-journey
-python 04_llm_basics\01_hello_llm\demo01_quick_start.py
+python learning\04_llm_basics\01_hello_llm\demo01_quick_start.py
 ```
 
-脚本开头需要引用 `common/` 时，加 5 行"向上找仓库根"的引导（见 [common/README.md](../common/README.md)）。
+脚本开头需要引用 `common/` 时，加 5 行"向上找仓库根"的引导（见 [common/README.md](../../common/README.md)）。
 
 ## 验收标准（能脱稿讲清）
 

@@ -1,6 +1,7 @@
 # 学习路线与进度
 
-> 最后更新：2026-11-16 ｜ 当前主攻：`07_langchain`（模型 I/O）
+> 最后更新：2026-11-27 ｜ 当前主攻：`12_fastapi_service` 服务化复习（综合案例已跑通）
+> 目录调整（2026-11-27）：`01`~`12` 学习模块已整体收进仓库根 `learning/`；本表沿用模块编号，路径请以 `learning/0X_xxx/` 为准。成品项目在 `projects/`。
 
 ## 一、模块结构与进度
 
@@ -11,7 +12,7 @@
 | LLM 应用 | `04_llm_basics`、`05_rag`、`06_prompt_engineering` | ✅ 已通读，重写中 |
 | LLM 应用 | `07_langchain` | 🚧 进行中 |
 | LLM 应用 | `08_multimodal`、`09_agent`、`10_langgraph` | ⏳ 未开始 |
-| 工程化 | `11_finetune`、`12_fastapi_service` | ⏳ 未开始 |
+| 工程化 | `11_finetune`、`12_fastapi_service` | ⏳ / 🚧（12 已跑通综合案例，状态以 `learning/README.md` 进度表为准） |
 | 综合 | `projects/` | ⏳ 未开始 |
 
 **策略**：应用层 12 个模块全部打通即具备投递条件；算法侧按"工具箱"深度掌握——Transformer 与 Attention 的直觉、PyTorch 基础、

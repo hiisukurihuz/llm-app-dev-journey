@@ -36,7 +36,7 @@
 已跑通：`01_naive_rag/native_rag.py`（2026-11-26 实测 `exit 0`）。需 `.env` 配好 `DEEPSEEK_API_KEY` / `VOLC_API_KEY`，依赖见根 `requirements.txt`。
 
 ```powershell
-python 05_rag\01_naive_rag\native_rag.py
+python learning\05_rag\01_naive_rag\native_rag.py
 ```
 
 一个程序里跑两条路径做对照：全量上下文直接生成、RAG 检索（embedding → 余弦相似度 → `TOP_K=3` 截断 → 拼回 Prompt 再生成），输出为对照答案、TopK 相似度列表、RAG 生成答案三段。`04_rerank/demo15_cross_encoder.py` 尚未落地；Recall@K、token 对比等实测数字待测，未实测一律写「待测」。

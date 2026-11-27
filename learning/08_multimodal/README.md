@@ -30,7 +30,7 @@
 ## 怎么跑
 
 ```powershell
-python 08_multimodal\01_vision_qa\demo01_image_qa.py
+python learning\08_multimodal\01_vision_qa\demo01_image_qa.py
 ```
 
 ## 验收标准（能脱稿讲清）

@@ -31,11 +31,11 @@ from common.config import ds_key, volc_key
 ```
 
 为什么不用 `from global_var import *`？
-因为脚本散落在 `05_rag/04_rerank/` 这样的多层目录里，Python 只把"脚本所在目录"加进搜索路径，
+因为脚本散落在 `learning/05_rag/04_rerank/` 这样的多层目录里，Python 只把"脚本所在目录"加进搜索路径，
 向上找根目录是唯一在任意层级都能用、又不需要配环境变量的写法。
 
 > 另一种等价做法：在仓库根执行 `$env:PYTHONPATH="."`（PowerShell）/ `export PYTHONPATH=.`（Git Bash），
-> 之后直接 `python 07_langchain/01_model_io/demo01.py` 也能 import。缺点是每开一个新终端都要设一次。
+> 之后直接 `python learning/07_langchain/01_model_io/demo01.py` 也能 import。缺点是每开一个新终端都要设一次。
 
 ## 三、常用写法
 

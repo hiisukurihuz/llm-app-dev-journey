@@ -20,5 +20,5 @@ RAG 系统"感觉还行"不算完成，要有可重复的数字。这个目录�
 改完 prompt 或分块策略后重跑一次，用数字对比，而不是靠印象判断"好像变好了"。
 
 ```powershell
-pytest 05_rag\tests -q
+pytest learning\05_rag\tests -q
 ```

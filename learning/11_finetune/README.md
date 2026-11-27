@@ -30,7 +30,7 @@ RAG 解决"模型不知道"，微调解决"模型不会按你的方式做"。这
 
 ```powershell
 pip install torch transformers peft datasets accelerate
-python 11_finetune\02_lora_sft\train.py
+python learning\11_finetune\02_lora_sft\train.py
 ```
 
 ## 验收标准（能脱稿讲清）

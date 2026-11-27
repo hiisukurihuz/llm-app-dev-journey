@@ -42,13 +42,13 @@
 
 ```powershell
 cd D:\PythonProject\llm-app-dev-journey
-python 01_python_core\09_project_house_mis\main.py
+python learning\01_python_core\09_project_house_mis\main.py
 ```
 
 `08_file_io/` 里的大文件用脚本生成，不要提交：
 
 ```powershell
-python 01_python_core\08_file_io\gen_test_file.py
+python learning\01_python_core\08_file_io\gen_test_file.py
 ```
 
 ## 验收标准（能脱稿讲清）

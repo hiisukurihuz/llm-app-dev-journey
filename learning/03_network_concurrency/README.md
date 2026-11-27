@@ -37,15 +37,15 @@
 
 ```powershell
 # 终端 1
-python 03_network_concurrency\01_socket_basic\tcp_server.py
+python learning\03_network_concurrency\01_socket_basic\tcp_server.py
 # 终端 2
-python 03_network_concurrency\01_socket_basic\tcp_client.py
+python learning\03_network_concurrency\01_socket_basic\tcp_client.py
 ```
 
 HTTP 服务：
 
 ```powershell
-python 03_network_concurrency\05_http_server\demo01_HTTP_server.py
+python learning\03_network_concurrency\05_http_server\demo01_HTTP_server.py
 # 浏览器打开 http://127.0.0.1:8000/
 ```
 

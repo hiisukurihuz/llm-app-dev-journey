@@ -81,5 +81,5 @@ def parse_verdict(text: str):
 
 ```powershell
 cd D:\PythonProject\llm-app-dev-journey
-python 06_prompt_engineering\04_self_consistency\self_consistency.py
+python learning\06_prompt_engineering\04_self_consistency\self_consistency.py
 ```

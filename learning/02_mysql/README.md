@@ -35,10 +35,10 @@
 ```powershell
 # 1) 起 MySQL（用你自己的服务或容器）
 # 2) 导入示例库
-mysql -u root -p < 02_mysql\data\tedu.sql
+mysql -u root -p < learning\02_mysql\data\tedu.sql
 
 # 3) 跑 Python 侧
-python 02_mysql\04_python_mysql\demo01_crud.py
+python learning\02_mysql\04_python_mysql\demo01_crud.py
 ```
 
 事务演示需要两个客户端窗口，分别执行 `03_transaction/` 下的 `session1.sql` / `session2.sql`。

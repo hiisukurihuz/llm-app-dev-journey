@@ -34,7 +34,7 @@
 ## 怎么跑
 
 ```powershell
-python 09_agent\01_react\demo01_react_loop.py
+python learning\09_agent\01_react\demo01_react_loop.py
 ```
 
 ## 验收标准（能脱稿讲清）

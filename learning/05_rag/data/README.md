@@ -23,5 +23,5 @@
 跑之前确认一下：
 
 ```powershell
-dir 05_rag\data
+dir learning\05_rag\data
 ```
