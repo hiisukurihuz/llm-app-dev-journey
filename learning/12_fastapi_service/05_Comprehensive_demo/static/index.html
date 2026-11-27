@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电商商品管理系统</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛒 电商商品管理系统</h1>
+            <p>基于 FastAPI + Pydantic + 原生前端 · 综合案例</p>
+        </header>
+
+        <!-- 工具栏：搜索 + 筛选 + 按ID查询 + 新增 -->
+        <div class="toolbar">
+            <input type="text" id="keyword" placeholder="🔍 搜索商品名称...">
+            <select id="categoryFilter">
+                <option value="">全部分类</option>
+            </select>
+            <button class="btn-search" onclick="searchProducts()">搜索</button>
+            <button class="btn-search" onclick="resetSearch()">重置</button>
+            <span class="toolbar-divider"></span>
+            <input type="number" id="idQuery" placeholder="输入商品ID" min="1"
+                   onkeydown="if(event.key==='Enter') queryById()">
+            <button class="btn-search" onclick="queryById()">按ID查询</button>
+            <div style="flex:1"></div>
+            <button class="btn-primary" onclick="openCreateModal()">+ 新增商品</button>
+        </div>
+
+        <!-- 商品表格 -->
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>商品名称</th>
+                    <th>分类</th>
+                    <th>价格</th>
+                    <th>库存</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="productTable">
+                <tr><td colspan="7" class="empty">加载中...</td></tr>
+            </tbody>
+        </table>
+
+        <!-- 分页 -->
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- 新增/编辑弹窗 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 id="modalTitle">新增商品</h2>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label>商品名称 *</label>
+                    <input type="text" id="name" required>
+                    <div class="error" id="nameError"></div>
+                </div>
+                <div class="form-group">
+                    <label>价格 *</label>
+                    <input type="number" id="price" step="0.01" required>
+                    <div class="error" id="priceError"></div>
+                </div>
+                <div class="form-group">
+                    <label>库存 *</label>
+                    <input type="number" id="stock" value="0" required>
+                    <div class="error" id="stockError"></div>
+                </div>
+                <div class="form-group">
+                    <label>分类</label>
+                    <input type="text" id="category" value="未分类">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">取消</button>
+                    <button type="submit" class="btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 查看商品窗体（只读详情，复用 GET /api/products/{id}） -->
+    <div class="modal-overlay" id="viewOverlay">
+        <div class="modal view-modal">
+            <h2>📦 商品详情</h2>
+            <div class="detail-grid">
+                <div class="detail-row"><span class="detail-label">商品 ID</span><span class="detail-value" id="viewId"></span></div>
+                <div class="detail-row"><span class="detail-label">商品名称</span><span class="detail-value" id="viewName"></span></div>
+                <div class="detail-row"><span class="detail-label">分类</span><span class="detail-value" id="viewCategory"></span></div>
+                <div class="detail-row"><span class="detail-label">价格</span><span class="detail-value" id="viewPrice"></span></div>
+                <div class="detail-row"><span class="detail-label">库存</span><span class="detail-value" id="viewStock"></span></div>
+                <div class="detail-row"><span class="detail-label">创建时间</span><span class="detail-value" id="viewCreated"></span></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeViewModal()">关闭</button>
+                <button type="button" class="btn-primary" onclick="editFromView()">编辑此商品</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示条 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        // 全局状态
+        // ============================================================
+        const API_BASE = "/api";
+        const state = {
+            page: 1,
+            page_size: 5,
+            keyword: "",
+            category: "",
+            total: 0
+        };
+
+        // ============================================================
+        // 工具函数
+        // ============================================================
+
+        // 显示提示条
+        function showToast(message, type = "success") {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.className = "toast", 2500);
+        }
+
+        // 统一的 fetch 封装，处理错误
+        async function api(url, options = {}) {
+            const resp = await fetch(url, {
+                headers: { "Content-Type": "application/json" },
+                ...options
+            });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok) {
+                // FastAPI 的 422 错误结构：{ detail: [{loc, msg, type}, ...] }
+                let msg = "请求失败";
+                if (Array.isArray(data.detail)) {
+                    msg = data.detail.map(e => `${e.loc.join(".")}: ${e.msg}`).join("；");
+                } else if (data.detail) {
+                    msg = data.detail;
+                }
+                throw new Error(msg);
+            }
+            return data;
+        }
+
+        // ISO 时间字符串 → 本地可读时间
+        function fmtTime(s) {
+            if (!s) return "-";
+            const d = new Date(s);
+            return isNaN(d.getTime()) ? s : d.toLocaleString("zh-CN", { hour12: false });
+        }
+
+        // ============================================================
+        // 商品列表：加载 + 渲染
+        // ============================================================
+
+        async function loadProducts() {
+            const params = new URLSearchParams({
+                page: state.page,
+                page_size: state.page_size
+            });
+            if (state.keyword) params.append("keyword", state.keyword);
+            if (state.category) params.append("category", state.category);
+
+            try {
+                                 /*请求的地址为 /api/products   */
+                const data = await api(`${API_BASE}/products?${params}`);
+                state.total = data.total;
+                renderTable(data.items);
+                renderPagination();
+            } catch (e) {
+                showToast(e.message, "error");
+            }
+        }
+
+        function renderTable(items) {
+            const tbody = document.getElementById("productTable");
+            if (!items.length) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty">暂无商品数据</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = items.map(p => `
+                <tr>
+                    <td>${p.id}</td>
+                    <td><strong class="product-link" onclick="openViewModal(${p.id})" title="点击查看商品详情">${p.name}</strong></td>
+                    <td><span class="category-tag">${p.category}</span></td>
+                    <td>¥ ${p.price.toFixed(2)}</td>
+                    <td>
+                        <span class="${p.stock < 50 ? 'stock-low' : 'stock-ok'}">
+                            ${p.stock}
+                        </span>
+                    </td>
+                    <td>${fmtTime(p.created_at)}</td>
+                    <td>
+                        <button class="btn-view" onclick="openViewModal(${p.id})">查看</button>
+                        <button class="btn-edit" onclick="openEditModal(${p.id})">编辑</button>
+                        <button class="btn-delete" onclick="deleteProduct(${p.id})">删除</button>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        // ============================================================
+        // 分页渲染
+        // ============================================================
+
+        function renderPagination() {
+            const totalPages = Math.ceil(state.total / state.page_size) || 1;
+            const box = document.getElementById("pagination");
+
+            let html = `<button onclick="goPage(${state.page - 1})"
+                        ${state.page <= 1 ? "disabled" : ""}>上一页</button>`;
+
+            // 简化分页：最多显示 5 个页码按钮
+            const start = Math.max(1, state.page - 2);
+            const end = Math.min(totalPages, start + 4);
+            for (let i = start; i <= end; i++) {
+                html += `<button class="${i === state.page ? 'active' : ''}"
+                         onclick="goPage(${i})">${i}</button>`;
+            }
+
+            html += `<button onclick="goPage(${state.page + 1})"
+                     ${state.page >= totalPages ? "disabled" : ""}>下一页</button>`;
+            html += `<span>共 ${state.total} 条 / ${totalPages} 页</span>`;
+
+            box.innerHTML = html;
+        }
+
+        function goPage(p) {
+            const totalPages = Math.ceil(state.total / state.page_size) || 1;
+            if (p < 1 || p > totalPages) return;
+            state.page = p;
+            loadProducts();
+        }
+
+        // ============================================================
+        // 搜索 / 重置
+        // ============================================================
+
+        function searchProducts() {
+            state.keyword = document.getElementById("keyword").value.trim();
+            state.category = document.getElementById("categoryFilter").value;
+            state.page = 1;
+            loadProducts();
+        }
+
+        function resetSearch() {
+            document.getElementById("keyword").value = "";
+            document.getElementById("categoryFilter").value = "";
+            document.getElementById("idQuery").value = "";
+            state.keyword = "";
+            state.category = "";
+            state.page = 1;
+            loadProducts();
+        }
+
+        // ============================================================
+        // 查看窗体 + 按 ID 查询（都走 GET /api/products/{id}）
+        // ============================================================
+
+        // 打开只读查看窗体；商品名点击、行内「查看」、按 ID 查询共用此入口
+        async function openViewModal(id) {
+            try {
+                const p = await api(`${API_BASE}/products/${id}`);
+                document.getElementById("viewId").textContent = p.id;
+                document.getElementById("viewName").textContent = p.name;
+                document.getElementById("viewCategory").textContent = p.category;
+                document.getElementById("viewPrice").textContent = `¥ ${Number(p.price).toFixed(2)}`;
+                const stockEl = document.getElementById("viewStock");
+                stockEl.textContent = p.stock;
+                stockEl.className = "detail-value " + (p.stock < 50 ? "stock-low" : "stock-ok");
+                document.getElementById("viewCreated").textContent = fmtTime(p.created_at);
+                document.getElementById("viewOverlay").classList.add("show");
+            } catch (e) {
+                // 查无此商品时后端返回 404 + detail，api() 已把它转成 Error
+                showToast(e.message, "error");
+            }
+        }
+
+        function closeViewModal() {
+            document.getElementById("viewOverlay").classList.remove("show");
+        }
+
+        // 查看窗体里点「编辑此商品」：关掉只读窗体，转交原有编辑弹窗
+        function editFromView() {
+            const id = document.getElementById("viewId").textContent;
+            closeViewModal();
+            openEditModal(id);
+        }
+
+        // 工具栏「按 ID 查询」：先做正整数校验，再复用查看窗体展示结果
+        async function queryById() {
+            const raw = document.getElementById("idQuery").value.trim();
+            if (!raw) { showToast("请输入商品ID", "error"); return; }
+            const id = Number(raw);
+            if (!Number.isInteger(id) || id <= 0) { showToast("商品ID必须是正整数", "error"); return; }
+            await openViewModal(id);
+        }
+
+        // ============================================================
+        // 弹窗：新增 / 编辑
+        // ============================================================
+
+        function openCreateModal() {
+            document.getElementById("modalTitle").textContent = "新增商品";
+            document.getElementById("productForm").reset();
+            document.getElementById("productId").value = "";
+            document.getElementById("stock").value = 0;
+            document.getElementById("category").value = "未分类";
+            clearErrors();
+            document.getElementById("modalOverlay").classList.add("show");
+        }
+
+        async function openEditModal(id) {
+            try {
+                const p = await api(`${API_BASE}/products/${id}`);
+                document.getElementById("modalTitle").textContent = "编辑商品";
+                document.getElementById("productId").value = p.id;
+                document.getElementById("name").value = p.name;
+                document.getElementById("price").value = p.price;
+                document.getElementById("stock").value = p.stock;
+                document.getElementById("category").value = p.category;
+                clearErrors();
+                document.getElementById("modalOverlay").classList.add("show");
+            } catch (e) {
+                showToast(e.message, "error");
+            }
+        }
+
+        function closeModal() {
+            document.getElementById("modalOverlay").classList.remove("show");
+        }
+
+        function clearErrors() {
+            ["nameError", "priceError", "stockError"].forEach(id => {
+                document.getElementById(id).textContent = "";
+            });
+        }
+
+        // ============================================================
+        // 表单提交：新增或更新
+        // ============================================================
+
+        document.getElementById("productForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            clearErrors();
+
+            const id = document.getElementById("productId").value;
+            const body = {
+                name: document.getElementById("name").value.trim(),
+                price: parseFloat(document.getElementById("price").value),
+                stock: parseInt(document.getElementById("stock").value),
+                category: document.getElementById("category").value.trim() || "未分类"
+            };
+
+            try {
+                if (id) {
+                    // 更新
+                    await api(`${API_BASE}/products/${id}`, {
+                        method: "PUT",
+                        body: JSON.stringify(body)
+                    });
+                    showToast("商品更新成功");
+                } else {
+                    // 新增
+                    await api(`${API_BASE}/products`, {
+                        method: "POST",
+                        body: JSON.stringify(body)
+                    });
+                    showToast("商品创建成功");
+                }
+                closeModal();
+                loadProducts();
+            } catch (err) {
+                showToast(err.message, "error");
+            }
+        });
+
+        // ============================================================
+        // 删除商品
+        // ============================================================
+
+        async function deleteProduct(id) {
+            if (!confirm(`确定删除商品 ${id} 吗？`)) return;
+            try {
+                await api(`${API_BASE}/products/${id}`, { method: "DELETE" });
+                showToast("商品已删除");
+                loadProducts();
+            } catch (e) {
+                showToast(e.message, "error");
+            }
+        }
+
+        // ============================================================
+        // 加载分类下拉框
+        // ============================================================
+
+        async function loadCategories() {
+            try {
+                const data = await api(`${API_BASE}/categories`);
+                const select = document.getElementById("categoryFilter");
+                data.categories.forEach(c => {
+                    const opt = document.createElement("option");
+                    opt.value = c;
+                    opt.textContent = c;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // ============================================================
+        // 页面初始化
+        // ============================================================
+
+        (async function init() {
+            await loadCategories();
+            await loadProducts();
+        })();
+    </script>
+</body>
+</html>
